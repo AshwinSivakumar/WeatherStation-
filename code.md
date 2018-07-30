@@ -1,1 +1,223 @@
 
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BMP085_U.h>
+
+
+Adafruit_BMP085_Unified bmp = Adafruit_BMP085_Unified(10085);
+
+
+void displaySensorDetails()
+{
+  sensor_t sensor;
+  bmp.getSensor(&sensor);
+  Serial.println("------------------------------------");
+  Serial.print  ("Sensor:       "); Serial.println(sensor.name);
+  Serial.print  ("Driver Ver:   "); Serial.println(sensor.version);
+  Serial.print  ("Unique ID:    "); Serial.println(sensor.sensor_id);
+  Serial.print  ("Max Value:    "); Serial.print(sensor.max_value); Serial.println(" hPa");
+  Serial.print  ("Min Value:    "); Serial.print(sensor.min_value); Serial.println(" hPa");
+  Serial.print  ("Resolution:   "); Serial.print(sensor.resolution); Serial.println(" hPa");  
+  Serial.println("------------------------------------");
+  Serial.println("");
+  delay(500);
+}
+
+int ledPin = 2;
+int ledPin2 = 3;
+int ledPin3 = 4;
+int ledPin4 = 8;
+int ledPin5 = 9;
+// threshold var
+int lowest=10,low=20,med=30,high=40;
+
+char switchval;
+int inpcount=0;
+int fadeValue=255,fadeValue2=0;
+
+void setup() 
+{
+  pinMode(2, OUTPUT);
+  pinMode(9,OUTPUT);
+  pinMode(3,OUTPUT);
+  pinMode(4,OUTPUT);
+  pinMode(8,OUTPUT);
+  Serial.begin(9600);
+   
+  Serial.println("Pressure Sensor Test"); Serial.println("");
+  
+  /* Initialise the sensor */
+  if(!bmp.begin())
+  {
+    /* There was a problem detecting the BMP085 ... check your connections */
+    Serial.print("Ooops, no BMP085 detected ... Check your wiring or I2C ADDR!");
+    while(1);
+  }
+  
+
+  displaySensorDetails();
+  Serial.println("Press 1 if you're at home");
+  Serial.println("Press 2 if you're in the car");
+  Serial.println("Press 3 if you want to go outside");
+ 
+}
+
+void update_pinvalue( int val1, int val2, int val3, int val4, int val5, String str )
+{
+      Serial.println(str);
+      analogWrite(ledPin,val1);
+      analogWrite(ledPin2,val2);
+      analogWrite(ledPin3,val3);
+      analogWrite(ledPin4,val4);
+      analogWrite(ledPin5,val5);
+}
+
+void loop() 
+{
+ 
+  sensors_event_t event;
+  bmp.getEvent(&event);
+ if(inpcount<=0)
+ {
+ if(Serial.available()>0)
+  {
+    switchval=Serial.read();
+    inpcount++;
+    Serial.println("------------------------------------");
+  }
+ }
+if(switchval=='1')
+   {
+      if (event.pressure)
+       {
+          /* Display atmospheric pressue in hPa */
+         Serial.print("Pressure:    ");
+         Serial.print(event.pressure);
+         Serial.println(" hPa");
+         float seaLevelPressure = SENSORS_PRESSURE_SEALEVELHPA;
+         Serial.print("Altitude:    "); 
+         Serial.print(bmp.pressureToAltitude(seaLevelPressure,event.pressure)); 
+         Serial.println(" m");
+         float temperature;
+         bmp.getTemperature(&temperature);
+         Serial.print("Temperature: ");
+         Serial.print(temperature);
+         Serial.println(" C");
+         Serial.println("");
+        if (temperature > high)
+        {
+          update_pinvalue(fadeValue2, fadeValue, fadeValue, fadeValue, fadeValue2, "Unbearbly hot, highly recommended to turn on thr fan/AC/Cooler");
+        }
+        else if(temperature <= high && temperature > med)
+        {
+            update_pinvalue(fadeValue, fadeValue2, fadeValue, fadeValue2, fadeValue, "Quite hot,recommended to turn on the fan ");
+        }
+        else if(temperature <= med && temperature > low)
+        {
+          update_pinvalue(fadeValue, fadeValue, fadeValue2, fadeValue, fadeValue, "Favorable temperature");
+        }
+        else if(temperature <= low && temperature >=lowest)
+        {
+          update_pinvalue(fadeValue, fadeValue2, fadeValue, fadeValue2, fadeValue, "Quite cold turn off AC/Fan");
+        }
+        else if(temperature < lowest)
+        {
+          update_pinvalue(fadeValue2, fadeValue, fadeValue, fadeValue, fadeValue2, "Extermely cold, highly recomended to turn on the heater and get a cup of Hot Chocolate"); 
+        }
+     
+        Serial.println("");
+        Serial.println("------------------------------------");
+  }  
+   }
+if(switchval=='2')
+   {
+      if (event.pressure)
+       {
+          /* Display atmospheric pressue in hPa */
+         Serial.print("Pressure:    ");
+         Serial.print(event.pressure);
+         Serial.println(" hPa");
+         float seaLevelPressure = SENSORS_PRESSURE_SEALEVELHPA;
+         Serial.print("Altitude:    "); 
+         Serial.print(bmp.pressureToAltitude(seaLevelPressure,event.pressure)); 
+         Serial.println(" m");
+         float temperature;
+         bmp.getTemperature(&temperature);
+         Serial.print("Temperature: ");
+         Serial.print(temperature);
+         Serial.println(" C");
+         Serial.println("");
+        if (temperature > high)
+        {
+          update_pinvalue(fadeValue2, fadeValue, fadeValue, fadeValue, fadeValue2, "Unbearably hot,  turn on the AC");
+        }
+        else if(temperature <= high && temperature > med)
+        {
+            update_pinvalue(fadeValue, fadeValue2, fadeValue, fadeValue2, fadeValue, "Quite hot");
+        }
+        else if(temperature <= med && temperature > low)
+        {
+          update_pinvalue(fadeValue, fadeValue, fadeValue2, fadeValue, fadeValue, "Favorable temperature");
+        }
+        else if(temperature <= low && temperature >=lowest)
+        {
+          update_pinvalue(fadeValue, fadeValue2, fadeValue, fadeValue2, fadeValue, "Quite cold , increase the temperature of the AC");
+        }
+        else if(temperature < lowest)
+        {
+          update_pinvalue(fadeValue2, fadeValue, fadeValue, fadeValue, fadeValue2, "Unbearably cold, Stay indoors and turn on the heater "); 
+        }
+     
+        Serial.println("");
+        Serial.println("------------------------------------");
+  } 
+   }
+  if(switchval=='3')
+   {
+      if (event.pressure)
+       {
+          /* Display atmospheric pressue in hPa */
+         Serial.print("Pressure:    ");
+         Serial.print(event.pressure);
+         Serial.println(" hPa");
+         float seaLevelPressure = SENSORS_PRESSURE_SEALEVELHPA;
+         Serial.print("Altitude:    "); 
+         Serial.print(bmp.pressureToAltitude(seaLevelPressure,event.pressure)); 
+         Serial.println(" m");
+         float temperature;
+         bmp.getTemperature(&temperature);
+         Serial.print("Temperature: ");
+         Serial.print(temperature);
+         Serial.println(" C");
+         Serial.println("");
+        if (temperature > high)
+        {
+          update_pinvalue(fadeValue2, fadeValue, fadeValue, fadeValue, fadeValue2, "Unbearbly hot, stay indoors and turn on the AC");
+        }
+        else if(temperature <= high && temperature > med)
+        {
+            update_pinvalue(fadeValue, fadeValue2, fadeValue, fadeValue2, fadeValue, "Quite hot");
+        }
+        else if(temperature <= med && temperature > low)
+        {
+          update_pinvalue(fadeValue, fadeValue, fadeValue2, fadeValue, fadeValue, "Favorable to go outside , Enjoy your day");
+        }
+        else if(temperature <= low && temperature >=lowest)
+        {
+          update_pinvalue(fadeValue, fadeValue2, fadeValue, fadeValue2, fadeValue, "Quite cold");
+        }
+        else if(temperature < lowest)
+        {
+          update_pinvalue(fadeValue2, fadeValue, fadeValue, fadeValue, fadeValue2, "I assume you are in the freezer or you are in a very cold place, leave immediately and go somewhere warm"); 
+        }
+     
+        Serial.println("");
+        Serial.println("------------------------------------");
+  } 
+   }
+  
+
+  delay(1000);
+   }
+ //end of if else statement 1 
+
