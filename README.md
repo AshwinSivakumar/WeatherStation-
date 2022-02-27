@@ -1,6 +1,6 @@
 # WeatherStation-
 
-Introduction
+Introduction: 
 When we want to check the weather, we always rely on our phones for help.These phones will take the information from the internet. Our goal is to create a device to detect the Humidity, Altitude, and temperature content which is also on the whole very portable. Problem with weather stations Portable weather stations are portable devices which can do the same things which were mentioned in the introduction above. The problem with this is that it is:
 
 1. Heavy
